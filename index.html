@@ -314,14 +314,17 @@
             const cleaned = cleanText(textVal);
             let processed = processCipher(cleaned, keyData, true);
 
+            let finalKey = keyVal.trim();
+
             // Convert to Emoji if requested
             if (format === 'emoji') {
                 processed = textToEmoji(processed);
+                finalKey = textToEmoji(finalKey); // Convert key to emojis too
             }
 
             // Combine Key + Processed Message
             // We use keyVal.trim() to ensure the key is just the text, but valid
-            const finalOutput = keyVal.trim() + '\n' + processed;
+            const finalOutput = finalKey + '\n' + processed;
 
             resultBox.innerText = finalOutput;
         }
