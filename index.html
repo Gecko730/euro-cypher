@@ -75,7 +75,7 @@
 
             <!-- Output -->
             <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 relative group">
-                <label class="block text-xs font-bold uppercase text-blue-400 mb-2">Result</label>
+                <label class="block text-xs font-bold uppercase text-blue-400 mb-2">Result (Key + Ciphertext)</label>
                 <div id="enc-result" class="font-mono text-sm text-blue-900 whitespace-pre-wrap min-h-[60px] break-words"></div>
                 <button onclick="copyToClipboard('enc-result')" class="absolute top-4 right-4 text-blue-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
                     <i class="ph ph-copy text-xl"></i>
@@ -319,7 +319,11 @@
                 processed = textToEmoji(processed);
             }
 
-            resultBox.innerText = processed;
+            // Combine Key + Processed Message
+            // We use keyVal.trim() to ensure the key is just the text, but valid
+            const finalOutput = keyVal.trim() + '\n' + processed;
+
+            resultBox.innerText = finalOutput;
         }
 
         // Decryption Update
