@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cipher Tool</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tab-btn.active { border-bottom: 2px solid #3b82f6; color: #3b82f6; font-weight: 600; }
+        .emoji-font { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col items-center">
+
+    <!-- Header -->
+    <header class="w-full bg-white shadow-sm p-4 sticky top-0 z-10">
+        <div class="max-w-3xl mx-auto flex items-center gap-2">
+            <i class="ph-fill ph-lock-key text-blue-600 text-2xl"></i>
+            <h1 class="text-xl font-bold tracking-tight text-slate-900">Cipher Tool</h1>
+        </div>
+    </header>
+
+    <main class="w-full max-w-3xl p-4 flex-grow">
+        
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-slate-200 mb-6 bg-white rounded-t-lg shadow-sm overflow-hidden">
+            <button onclick="switchTab('encrypt')" id="tab-encrypt" class="tab-btn active flex-1 py-3 text-sm text-slate-500 hover:bg-slate-50 transition-colors">
+                Encrypt
+            </button>
+            <button onclick="switchTab('decrypt')" id="tab-decrypt" class="tab-btn flex-1 py-3 text-sm text-slate-500 hover:bg-slate-50 transition-colors">
+                Decrypt
+            </button>
+            <button onclick="switchTab('converter')" id="tab-converter" class="tab-btn flex-1 py-3 text-sm text-slate-500 hover:bg-slate-50 transition-colors">
+                Emoji Converter
+            </button>
+        </div>
+
+        <!-- ENCRYPT SECTION -->
+        <div id="view-encrypt" class="space-y-6">
+            <!-- Key Input -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-2">1. The Key Line</label>
+                <input type="text" id="enc-key" placeholder="e.g. grho fjz kjg zn gjkosf..." 
+                    class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono text-sm">
+                
+                <!-- Feedback Area -->
+                <div id="key-feedback" class="mt-3 hidden">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span id="difficulty-badge" class="px-2 py-1 text-xs font-bold rounded text-white bg-gray-400">WAITING</span>
+                        <span class="text-xs text-slate-500">Mode detected</span>
+                    </div>
+                    <div id="shift-details" class="text-xs text-slate-600 font-mono bg-slate-100 p-2 rounded max-h-32 overflow-y-auto"></div>
+                </div>
+            </div>
+
+            <!-- Message Input -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-xs font-bold uppercase text-slate-400">2. Text to Encrypt</label>
+                    <select id="enc-output-format" class="text-sm border-slate-200 border rounded px-2 py-1 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="text">Output: Standard Text</option>
+                        <option value="emoji">Output: Emojis</option>
+                    </select>
+                </div>
+                <textarea id="enc-input" rows="5" placeholder="Type your message here..." 
+                    class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"></textarea>
+            </div>
+
+            <!-- Output -->
+            <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 relative group">
+                <label class="block text-xs font-bold uppercase text-blue-400 mb-2">Result</label>
+                <div id="enc-result" class="font-mono text-sm text-blue-900 whitespace-pre-wrap min-h-[60px] break-words"></div>
+                <button onclick="copyToClipboard('enc-result')" class="absolute top-4 right-4 text-blue-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <i class="ph ph-copy text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- DECRYPT SECTION -->
+        <div id="view-decrypt" class="hidden space-y-6">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-xs font-bold uppercase text-slate-400">Encrypted Message</label>
+                    <select id="dec-input-format" class="text-sm border-slate-200 border rounded px-2 py-1 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="text">Input: Standard Text</option>
+                        <option value="emoji">Input: Emojis</option>
+                    </select>
+                </div>
+                <p class="text-xs text-slate-400 mb-2">Paste everything here. The first line must be the Key Line.</p>
+                <textarea id="dec-input" rows="8" placeholder="Paste the full encrypted block here..." 
+                    class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all font-mono text-sm"></textarea>
+            </div>
+
+            <div class="bg-green-50 p-5 rounded-xl border border-green-100 relative group">
+                <label class="block text-xs font-bold uppercase text-green-600 mb-2">Decrypted Result</label>
+                <div id="dec-result" class="font-mono text-sm text-green-900 whitespace-pre-wrap min-h-[60px] break-words"></div>
+                <button onclick="copyToClipboard('dec-result')" class="absolute top-4 right-4 text-green-600 hover:text-green-800 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <i class="ph ph-copy text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- CONVERTER SECTION -->
+        <div id="view-converter" class="hidden space-y-6">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-2">Text / Emoji Converter</label>
+                <p class="text-sm text-slate-500 mb-4">Converts text to emojis (or vice versa) without applying any cipher shifts.</p>
+                
+                <div class="flex gap-2 mb-2">
+                    <button onclick="runConverter('toEmoji')" class="flex-1 bg-indigo-50 text-indigo-600 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-100 transition">Text → Emoji</button>
+                    <button onclick="runConverter('toText')" class="flex-1 bg-indigo-50 text-indigo-600 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-100 transition">Emoji → Text</button>
+                </div>
+
+                <textarea id="conv-input" rows="5" placeholder="Type here..." 
+                    class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm mb-4"></textarea>
+
+                <div class="bg-slate-100 p-4 rounded-lg relative group">
+                    <div id="conv-result" class="font-mono text-sm text-slate-700 whitespace-pre-wrap min-h-[40px] break-words"></div>
+                    <button onclick="copyToClipboard('conv-result')" class="absolute top-2 right-2 text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i class="ph ph-copy text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="p-6 text-center text-xs text-slate-400">
+        <p>Cipher Tool &copy; 2025. Secure & Local.</p>
+    </footer>
+
+    <script>
+        // --- EMOJI MAP ---
+        const emojiMap = {
+            'a': '😀', 'b': '😞', 'c': '😵‍💫', 'd': '🥶', 'e': '🫠',
+            'f': '🤖', 'g': '🦊', 'h': '🌈', 'i': '🧩', 'j': '🦁',
+            'k': '🍉', 'l': '🛸', 'm': '🎩', 'n': '🐢', 'o': '🌋',
+            'p': '💎', 'q': '🦉', 'r': '🐙', 's': '🌟', 't': '🎻',
+            'u': '🪐', 'v': '🍄', 'w': '🧸', 'x': '⚡', 'y': '🐉', 'z': '🌴'
+        };
+
+        // Create reverse map for lookup
+        const reverseEmojiMap = Object.fromEntries(Object.entries(emojiMap).map(([k, v]) => [v, k]));
+
+        // --- CLEANING UTILS ---
+        function cleanText(text) {
+            // Remove accents
+            let normalized = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            // Lowercase
+            normalized = normalized.toLowerCase();
+            // Filter: only a-z, space, newline, dot
+            return normalized.replace(/[^a-z \.\n]/g, '');
+        }
+
+        function textToEmoji(text) {
+            const cleaned = cleanText(text);
+            return Array.from(cleaned).map(char => {
+                if (emojiMap[char]) return emojiMap[char];
+                return char; // Keep space, dot, newline
+            }).join('');
+        }
+
+        function emojiToText(text) {
+            // Because emojis are multi-byte, we use Array.from to split correctly
+            // We iterate through input. If it's an emoji in our map, convert to char.
+            // If it's not, we check if it is a valid char (space, dot, newline).
+            // NOTE: This assumes the input is purely emojis/dots/spaces/newlines.
+            
+            // First, simple string replacement logic might be tricky with regex. 
+            // Let's iterate.
+            const chars = Array.from(text);
+            let result = "";
+            for (let char of chars) {
+                if (reverseEmojiMap[char]) {
+                    result += reverseEmojiMap[char];
+                } else if (char === '.' || char === ' ' || char === '\n') {
+                    result += char;
+                } else if (/[a-z]/.test(char)) {
+                    // If user pasted normal text in emoji mode, keep it if it's valid
+                    result += char;
+                }
+                // Ignore other symbols
+            }
+            return result;
+        }
+
+        // --- CIPHER LOGIC ---
+
+        function parseKey(keyLine) {
+            const groups = keyLine.trim().toLowerCase().split(/\s+/);
+            if (groups.length === 0 || groups[0] === "") return null;
+
+            const n = groups[0].length;
+            const keyGroupIndex = n - 1;
+
+            if (keyGroupIndex >= groups.length) return { error: `First group length is ${n}, but not enough groups.` };
+
+            const keyGroup = groups[keyGroupIndex];
+            const keyLength = keyGroup.length;
+            
+            let info = { mode: "", debug: [] };
+
+            if (keyLength === 1) {
+                info.mode = "SIMPLE";
+                const remaining = groups.slice(keyGroupIndex + 1);
+                info.shift = remaining.reduce((sum, g) => sum + g.length, 0);
+                info.debug.push(`Shift Amount: ${info.shift}`);
+            } else if (keyLength === 2) {
+                info.mode = "COMPLEX";
+                const before = groups.slice(0, keyGroupIndex);
+                info.base = before.reduce((sum, g) => sum + g.length, 0);
+                info.initial = groups.slice(keyGroupIndex + 1).map(g => g.length);
+                info.loop = groups.slice(keyGroupIndex).map(g => g.length);
+                
+                info.debug.push(`Base Shift: ${info.base}`);
+                if (info.initial.length > 0) info.debug.push(`Initial lines shifts: +${info.initial.join(", +")}`);
+                info.debug.push(`Loop shifts: +${info.loop.join(", +")}`);
+            } else {
+                return { error: `Key group '${keyGroup}' has ${keyLength} chars. Must be 1 or 2.` };
+            }
+            return info;
+        }
+
+        function shiftChar(char, amount, direction) {
+            if (!/[a-z]/.test(char)) return char;
+            const start = 97; // ord('a')
+            // JS modulo operator can be weird with negatives, so we add 26
+            let val = char.charCodeAt(0) - start;
+            val = (val + (amount * direction)) % 26;
+            if (val < 0) val += 26;
+            return String.fromCharCode(start + val);
+        }
+
+        function processCipher(text, keyData, isEncrypt) {
+            const direction = isEncrypt ? 1 : -1;
+            const lines = text.split('\n');
+            let resultLines = [];
+
+            if (keyData.mode === "SIMPLE") {
+                for (let line of lines) {
+                    let res = "";
+                    for (let char of line) res += shiftChar(char, keyData.shift, direction);
+                    resultLines.push(res);
+                }
+            } else {
+                let currentShift = keyData.base;
+                for (let i = 0; i < lines.length; i++) {
+                    let modifier = 0;
+                    if (i < keyData.initial.length) {
+                        modifier = keyData.initial[i];
+                    } else {
+                        // Loop logic
+                        let loopOffset = i - keyData.initial.length;
+                        let loopIdx = loopOffset % keyData.loop.length;
+                        modifier = keyData.loop[loopIdx];
+                    }
+                    currentShift += modifier;
+                    
+                    let res = "";
+                    for (let char of lines[i]) res += shiftChar(char, currentShift, direction);
+                    resultLines.push(res);
+                }
+            }
+            return resultLines.join('\n');
+        }
+
+        // --- UI LOGIC ---
+
+        // Encryption Update
+        function updateEncryption() {
+            const keyVal = document.getElementById('enc-key').value;
+            const textVal = document.getElementById('enc-input').value;
+            const format = document.getElementById('enc-output-format').value;
+            const feedbackBox = document.getElementById('key-feedback');
+            const badge = document.getElementById('difficulty-badge');
+            const detailBox = document.getElementById('shift-details');
+            const resultBox = document.getElementById('enc-result');
+
+            if (!keyVal.trim()) {
+                feedbackBox.classList.add('hidden');
+                resultBox.innerText = "";
+                return;
+            }
+
+            const keyData = parseKey(keyVal);
+            
+            feedbackBox.classList.remove('hidden');
+            if (keyData.error) {
+                badge.className = "px-2 py-1 text-xs font-bold rounded text-white bg-red-500";
+                badge.innerText = "ERROR";
+                detailBox.innerText = keyData.error;
+                resultBox.innerText = "Invalid Key";
+                return;
+            }
+
+            // Valid Key
+            if (keyData.mode === "SIMPLE") {
+                badge.className = "px-2 py-1 text-xs font-bold rounded text-white bg-green-500";
+                badge.innerText = "SIMPLE";
+            } else {
+                badge.className = "px-2 py-1 text-xs font-bold rounded text-white bg-purple-500";
+                badge.innerText = "COMPLEX";
+            }
+            detailBox.innerHTML = keyData.debug.join("<br>");
+
+            // Process Text
+            const cleaned = cleanText(textVal);
+            let processed = processCipher(cleaned, keyData, true);
+
+            // Convert to Emoji if requested
+            if (format === 'emoji') {
+                processed = textToEmoji(processed);
+            }
+
+            resultBox.innerText = processed;
+        }
+
+        // Decryption Update
+        function updateDecryption() {
+            const rawInput = document.getElementById('dec-input').value;
+            const format = document.getElementById('dec-input-format').value;
+            const resultBox = document.getElementById('dec-result');
+
+            if (!rawInput.trim()) {
+                resultBox.innerText = "";
+                return;
+            }
+
+            let textToProcess = rawInput;
+
+            // 1. If input is Emoji, convert to text FIRST
+            if (format === 'emoji') {
+                textToProcess = emojiToText(rawInput);
+            }
+
+            // 2. Split Key vs Body
+            // We assume first line is key
+            const firstNewLine = textToProcess.indexOf('\n');
+            if (firstNewLine === -1) {
+                resultBox.innerText = "Error: Input must have at least two lines (Line 1: Key, Line 2+: Message)";
+                return;
+            }
+
+            const keyLine = textToProcess.substring(0, firstNewLine);
+            const body = textToProcess.substring(firstNewLine + 1);
+
+            // 3. Parse Key
+            const keyData = parseKey(keyLine);
+            if (!keyData || keyData.error) {
+                resultBox.innerText = "Error parsing key line: " + (keyData?.error || "Unknown error");
+                return;
+            }
+
+            // 4. Decrypt
+            // Note: Body is already cleaner by emojiToText or raw input, but let's ensure it's clean
+            const cleanedBody = cleanText(body);
+            const decrypted = processCipher(cleanedBody, keyData, false);
+
+            resultBox.innerText = decrypted;
+        }
+
+        // Converter Logic
+        function runConverter(direction) {
+            const input = document.getElementById('conv-input').value;
+            const resBox = document.getElementById('conv-result');
+            
+            if (direction === 'toEmoji') {
+                resBox.innerText = textToEmoji(input);
+            } else {
+                resBox.innerText = emojiToText(input);
+            }
+        }
+
+        // Tab Switching
+        function switchTab(tab) {
+            ['encrypt', 'decrypt', 'converter'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('active');
+            });
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+        }
+
+        // Copy Utility
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                // simple visual feedback could go here
+            });
+        }
+
+        // Event Listeners
+        document.getElementById('enc-key').addEventListener('input', updateEncryption);
+        document.getElementById('enc-input').addEventListener('input', updateEncryption);
+        document.getElementById('enc-output-format').addEventListener('change', updateEncryption);
+
+        document.getElementById('dec-input').addEventListener('input', updateDecryption);
+        document.getElementById('dec-input-format').addEventListener('change', updateDecryption);
+
+    </script>
+</body>
+</html>
